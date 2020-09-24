@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.lastwhisper.modular.mapper.DebitnoteMapper">
+
+    <select id="selectDebitnotelistByPage" parameterType="debitnote"
+            resultType="debitnote">
+        select * from debitnote
+        <if test="debitname!=null">
+            where
+            debitname like CONCAT('%',#{debitname},'%' )
+        </if>
+    </select>
+
+    <!-- 根据操作人模糊查询操作人 自动补全 -->
+    <select id="selectDebitnoteByDebitname" parameterType="java.lang.String"
+            resultType="debitnote">
+		select distinct debitname from debitnote
+		where
+		debitname like CONCAT('%',#{debitname},'%' )
+	</select>
+
+    <insert id="insertDebitnote" parameterType="debitnote">
+        insert into debitnote(`debitid`,`debitname`,`position`,`reason`,`money`,`member`,`check`,`note`,`cashier`,`borrower`,`departmentid`)
+        values (0,#{debitname},#{position},#{reason},#{money},#{member},#{check},#{note},#{cashier},#{borrower},#{departmentid})
+    </insert>
+
+    <update id="updateDebitnoteById" parameterType="debitnote">
+        update debitnote set
+        <if test='debitname != null and debitname != ""'>
+            debitname = #{debitname},
+        </if>
+        <if test='departmentid != null and departmentid != "" '>
+            departmentid = #{departmentid},
+        </if>
+        <if test='position != null and position != ""'>
+           `position` = #{position},
+        </if>
+        <if test='reason != null and reason != ""'>
+            reason = #{reason},
+        </if>
+        <if test='money != null and money != ""'>
+            money = #{money},
+        </if>
+        <if test='member != null and member != ""'>
+            member = #{member},
+        </if>
+        <if test='check != null and check != ""'>
+            `check` = #{check},
+        </if>
+        <if test='note != null and note != ""'>
+            note = #{note},
+        </if>
+        <if test='cashier != null and cashier != ""'>
+            cashier = #{cashier},
+        </if>
+        <if test='borrower != null and borrower != ""'>
+            borrower = #{borrower}
+        </if>
+        where
+        <if test='debitid != null and debitid != ""'>
+            debitid = #{debitid}
+        </if>
+    </update>
+
+    <delete id="deleteDebitnote" parameterType="java.lang.String">
+        delete from debitnote where
+		debitid=#{debitid}
+    </delete>
+
+    <delete id="deleteByIds" parameterType="java.lang.Integer">
+        delete from debitnote where debitid in
+        <foreach collection="string" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+</mapper>

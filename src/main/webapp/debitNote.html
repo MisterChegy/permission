@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>借支管理</title>
+    <link rel="stylesheet" type="text/css"
+          href="ui/themes/default/easyui.css">
+    <link rel="stylesheet" type="text/css" href="ui/themes/icon.css">
+    <script type="text/javascript" src="ui/jquery.min.js"></script>
+    <script type="text/javascript" src="ui/jquery.easyui.min.js"></script>
+    <script type="text/javascript" src="ui/locale/easyui-lang-zh_CN.js"></script>
+    <script type="text/javascript" src='ui/jquery.serializejson.min.js'></script>
+    <script type="text/javascript" src="js/crud.js"></script>
+    <script type="text/javascript" src="js/search.js"></script>
+    <script type="text/javascript" src="js/download.js"></script>
+    <!--<script type="text/javascript" src="js/dept.js"></script>-->
+    <script type="text/javascript">
+        //用于search.js自动补全
+        var _url = 'debit/searchDebitName';
+        var _value = 'debitname';
+        //用于crud.js的esayui初始参数
+        var name = "debit/debit";
+        var title = '借支管理';
+        var idField = 'debitid';
+        var height = 500;
+        var width = 900;
+        var columns = [[{
+            field: 'debitname',
+            title: '借支人姓名',
+            width: 400
+        }, {
+            field: 'position',
+            title: '职位',
+            width: 200
+        }, {
+            field: 'reason',
+            title: '借支事由',
+            width: 400
+        }, {
+            field: 'money',
+            title: '人民币',
+            width: 200
+        }, {
+            field: 'member',
+            title: '￥',
+            width: 600
+        }, {
+            field: 'check',
+            title: '核准',
+            width: 300
+        }, {
+            field: 'note',
+            title: '会计',
+            width: 300
+        }, {
+            field: 'cashier',
+            title: '出纳',
+            width: 400
+        }, {
+            field: 'borrower',
+            title: '借支人',
+            width: 400
+        }]];
+    </script>
+</head>
+<body class="easyui-layout">
+<!--搜索区  -->
+<div data-options="region:'north',title:'查询'"
+     style="padding: 4px; background-color: #eee; height: 80px">
+    <form id="searchForm">
+        <table cellpadding="5">
+            <tr>
+                <td>借支人姓名 ：</td>
+                <td><input name="name" class="easyui-combobox" id="inputtable"/></td>
+                <td><a class="easyui-linkbutton"
+                       data-options="iconCls:'icon-search'" id="btnSearch">查询</a></td>
+                <td><a class="easyui-linkbutton"
+                       data-options="iconCls:'icon-remove'" id="btnReset">重置</a></td>
+        </table>
+    </form>
+</div>
+<!-- 数据表格区 -->
+<div data-options="region:'center',collapsible:true,split:true"
+     style="width: 1165px; height: 480px">
+    <table id="grid" style="width: 1165px; height: 480px"></table>
+</div>
+<!-- 添加、修改 -->
+<div id="editDlg">
+    <!--		<span>日期</span><input type="text" class=easyui-datebox id="thedate" style="width:100px;" readonly/>-->
+
+    <form id="editForm">
+        <input name="debitid" type="hidden"/>
+        <table border="1" style="overflow: hidden;text-overflow:ellipsis;">
+            <div style="width: 100px;height: 50px; margin: 0 auto">
+                <h1>借支单</h1>
+                <span class="nowdatetime"></span>
+            </div>
+            <div style="float: right; margin-right: 10px;">
+                部门<input name="departmentid" class="easyui-combotree"
+                         data-options="url:'depart/departlist',method:'post'" style="width:100px;">
+            </div>
+            <tr>
+                <td style="width: 80px;"><span>借支人姓名</span></td>
+                <td colspan="3"><input id="debitname" name="debitname"></td>
+
+                <td style="width: 80px;"><span>职位</span></td>
+                <td colspan="3"><input name="position"></td>
+            </tr>
+            <tr>
+                <td style="width: 90px;"><span>借支事由</span></td>
+                <td colspan="8"><input name="reason"></td>
+            </tr>
+            <tr>
+                <td><span>人民币</span></td>
+                <td colspan="3"><input id="money" name="money"></td>
+
+                <td><span>￥</span></td>
+                <td colspan="3"><input id="member" name="member" readonly="readonly"></td>
+            </tr>
+            <tr>
+                <td>核准</td>
+                <td><input name="check"></td>
+
+                <td style="width: 80px;">会计</td>
+                <td><input name="note"></td>
+
+                <td>出纳</td>
+                <td><input name="cashier"></td>
+
+                <td style="width: 90px;">借支人</td>
+                <td><input id="borrower" name="borrower" readonly="readonly"></td>
+            </tr>
+        </table>
+        <button style="float: right;margin-right: 20px;" id="btnSave" type="button">保存</button>
+    </form>
+</div>
+<script>
+    $(function () {
+        // $("#thedate").datebox("setValue",myformatter( new Date()));
+        // $("#thedate :text").attr("readonly","readonly");
+        // 获取当前日期
+        $(".nowdatetime").html(myformatter(new Date()))
+        // 借支人姓名
+        $("#debitname").bind("input propertychange", function (event) {
+            var debitname = $("#debitname").val();
+            // console.log('debitname = ', debitname)
+            $("#borrower").val(debitname);
+        });
+
+        // 数字人民币转大写
+        $("#money").bind("input propertychange", function (event) {
+            // 校验输入是否正确
+            var amtreg = /^\d+(\.\d{1,2})?$/;
+            var money = $("#money").val();
+            // console.log('money = ', money)
+            if (!amtreg.test(money)) {
+                alert("请输入正确的金额格式！");
+                $("#money").val("");
+                return;
+            }
+            var member = toCnMoney(money)
+            // console.log('member = ', member)
+            $("#member").val(member);
+        });
+    });
+
+    function myformatter(date) {
+        var y = date.getFullYear();
+        var m = date.getMonth() + 1;
+        var d = date.getDate();
+        return y + '年' + (m < 10 ? ('0' + m) : m) + '月' + (d < 10 ? ('0' + d) : d) + '日';
+    }
+
+    //大写钱
+    function toCnMoney(num) {
+        var strOutput = "";
+        var strUnit = '仟佰拾亿仟佰拾万仟佰拾元角分';
+        num += "00";
+        var intPos = num.indexOf('.');
+        if (intPos >= 0)
+            num = num.substring(0, intPos) + num.substr(intPos + 1, 2);
+        strUnit = strUnit.substr(strUnit.length - num.length);
+        for (var i = 0; i < num.length; i++)
+            strOutput += '零壹贰叁肆伍陆柒捌玖'.substr(num.substr(i, 1), 1) + strUnit.substr(i, 1);
+        return strOutput.replace(/零角零分$/, '整').replace(/零[仟佰拾]/g, '零').replace(/零{2,}/g, '零').replace(/零([亿|万])/g, '$1').replace(/零+元/, '元').replace(/亿零{0,3}万/, '亿').replace(/^元/, "零元");
+    };
+</script>
+</body>
+</html>

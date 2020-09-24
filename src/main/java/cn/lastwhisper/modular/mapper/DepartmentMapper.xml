@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.4//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.lastwhisper.modular.mapper.DepartmentMapper">
+
+	<resultMap id="department" type="Department">
+		<id property="departmentId" column="departmentid" javaType="String" />
+		<result property="departname" column="departname" javaType="String" />
+		<result property="status" column="status" javaType="String" />
+	</resultMap>
+
+	<!-- 初始化菜单树 -->
+    <resultMap type="cn.lastwhisper.modular.vo.DepartTree" id="departTree">
+        <id column="departmentid" property="id" javaType="java.lang.String" />
+        <result column="departname" property="text" javaType="java.lang.String" />
+        <collection column="departmentid" property="children" select="selectChild"/>
+    </resultMap>
+    
+    <!-- 查询二级菜单 -->
+	<select id="selectChild" resultMap="departTree">
+		select * from department where pid = #{departmentid}
+	</select>
+	
+	<!-- 这里的返回结果必须为resultMap，并且值为上面构建的resultMap的id的值 -->
+	<select id="selectDepartmentList" resultMap="departTree">
+		select * from department where departmentid='0'
+	</select>
+
+	<!-- 查询所有菜单的id、name -->
+	<select id="selectDepartIdName" resultMap="departTree">
+		SELECT departmentid,departname,status,icon FROM department where pid = #{pid} 
+	</select>
+	
+	<!-- 查询所有菜单的所有属性 -->
+	<select id="selectDepartment" resultMap="departTree">
+		SELECT departmentid,departname,status,icon,pid FROM department where pid = #{pid} 
+	</select>
+
+<!-- 根据id查询菜单 -->
+	<select id="selectDepartmentById" parameterType="java.lang.String" resultType="Department">
+		select * from department where departmentid = #{departmentid}
+	</select>
+<!-- 插入数据 -->
+	<insert id="insertDepartment" parameterType="Department">
+		insert into department(departmentid, departname, status, pid, is_parent, icon)
+		values(
+		<if test='departmentid != null and departmentid != ""'>
+			#{departmentid}
+		</if>
+		<if test='departname != null and departname != ""'>
+			,#{departname}
+		</if>
+		<if test='status != null and status != "" '>
+			,#{status}
+		</if>
+		<if test='pid != null and pid != ""'>
+			,#{pid}
+		</if>
+		<if test='is_parent != null and is_parent != ""'>
+			,#{is_parent}
+		</if>
+		<if test='icon != null and icon != ""'>
+			,#{icon}
+		</if>
+		);
+	</insert>
+	<!-- 	根据id删除数据-->
+	<update id="deleteDepartmentById">
+		delete from department where departmentid = #{0}
+	</update>
+	<!-- 	根据id修改数据 -->
+	<update id="updateDepartmentById" parameterType="Department">
+		update department
+		<trim prefix="set" suffixOverrides="," suffix="where departmentid = #{departmentid}">
+			<if test='departname != null and departname != ""'>
+				departname = #{departname},
+			</if>
+			<if test='status != null and status != "" '>
+				status = #{status},
+			</if>
+			<if test='pid != null and pid != ""'>
+				pid = #{pid},
+			</if>
+			<if test='is_parent != null and is_parent != ""'>
+				is_parent = #{is_parent},
+			</if>
+			<if test='icon != null and icon != ""'>
+				#{icon}
+			</if>
+		</trim>
+	</update>
+</mapper>
